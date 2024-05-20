@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
 const userSchema = new Schema({
-    userName: {
+    username: {
         type: String,
         required: true,
         unique: true,
@@ -20,7 +20,7 @@ const userSchema = new Schema({
         trim: true
     },
 
-    fullname: {
+    fullName: {
         type: String,
         required: true,
         trim: true,
@@ -56,43 +56,43 @@ const userSchema = new Schema({
 
 }, { timestamps: true })
 
-userSchema.pre("save", async function (next){
+userSchema.pre("save", async function (next) {
 
     // This if condition helps that ki password barr barr encrypt na jab change ho tab hi encrypt ho.
 
-    if(!this.isModified("password")){
+    if (!this.isModified("password")) {
         return next()
     }
-    this.password = bcrypt.hash(this.password,10)
+    this.password = await bcrypt.hash(this.password, 10)
     next()
 })
 
-userSchema.methods.isPasswordCorrect = async function(password){
+userSchema.methods.isPasswordCorrect = async function (password) {
     return await bcrypt.compare(password, this.password)
 }
 
-userSchema.methods.generateAccessToken = async function(){
-  return jwt.sign({
-        _id:this._id,
+userSchema.methods.generateAccessToken = async function () {
+    return jwt.sign({
+        _id: this._id,
         email: this.email,
         username: this.username,
         fullName: this.fullName
     },
-process.env.ACCESS_TOKEN_SECRET,
-{
-    expiresIn:process.env.ACCESS_TOKEN_EXPIRY
-}
-)
+        process.env.ACCESS_TOKEN_SECRET,
+        {
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY
+        }
+    )
 }
 
-userSchema.methods.generateRefreshToken = async function(){
+userSchema.methods.generateRefreshToken = async function () {
     return jwt.sign({
-        _id:this._id
+        _id: this._id
     },
-process.env.REFRESH_TOKEN_SECRET,
-{
-    expiresIn:process.env.REFRESH_TOKEN_EXPIRY
-})
+        process.env.REFRESH_TOKEN_SECRET,
+        {
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY
+        })
 }
 
-export const User = mongoose.models("User", userSchema);
+export const User = mongoose.model("User", userSchema);
